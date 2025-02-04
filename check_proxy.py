@@ -86,7 +86,7 @@ def backup_and_download(current_version, remote_version):
     os.makedirs(new_version_dir)
     shutil.copytree('./', backup_dir, ignore=lambda x, y: ['history'])
     proxies = get_conf('proxies')
-    try:    r = requests.get('https://github.com/binary-husky/chatgpt_academic/archive/refs/heads/master.zip', proxies=proxies, stream=True)
+    try:    r = requests.get('https://github.com/JikeStardy/gpt_academic/archive/refs/heads/master.zip', proxies=proxies, stream=True)
     except: r = requests.get('https://public.agent-matrix.com/publish/master.zip', proxies=proxies, stream=True)
     zip_file_path = backup_dir+'/master.zip'  # ⭐ 保存备份文件的路径
     with open(zip_file_path, 'wb+') as f:
@@ -180,7 +180,7 @@ def auto_update(raise_error=False):
         import requests
         import json
         proxies = get_conf('proxies')
-        try:    response = requests.get("https://raw.githubusercontent.com/binary-husky/chatgpt_academic/master/version", proxies=proxies, timeout=5)
+        try:    response = requests.get("https://raw.githubusercontent.com/JikeStardy/gpt_academic/master/version", proxies=proxies, timeout=5)
         except: response = requests.get("https://public.agent-matrix.com/publish/version", proxies=proxies, timeout=5)
         remote_json_data = json.loads(response.text)
         remote_version = remote_json_data['version']
@@ -194,7 +194,7 @@ def auto_update(raise_error=False):
         if (remote_version - current_version) >= 0.01-1e-5:
             from shared_utils.colorful import log亮黄
             log亮黄(f'\n新版本可用。新版本:{remote_version}，当前版本:{current_version}。{new_feature}')  # ⭐ 在控制台打印新版本信息
-            logger.info('（1）Github更新地址:\nhttps://github.com/binary-husky/chatgpt_academic\n')
+            logger.info('（1）Github更新地址:\nhttps://github.com/JikeStardy/gpt_academic\n')
             user_instruction = input('（2）是否一键更新代码（Y+回车=确认，输入其他/无输入+回车=不更新）？')
             if user_instruction in ['Y', 'y']:
                 path = backup_and_download(current_version, remote_version)  # ⭐ 备份并下载文件

@@ -12,7 +12,7 @@ import tiktoken, copy, re
 from loguru import logger
 from functools import lru_cache
 from concurrent.futures import ThreadPoolExecutor
-from toolbox import get_conf, trimmed_format_exc, apply_gpt_academic_string_mask, read_one_api_model_name
+from toolbox import get_conf, trimmed_format_exc, apply_gpt_academic_string_mask, read_one_api_model_name, read_siliconflow_model_name
 
 from .bridge_chatgpt import predict_no_ui_long_connection as chatgpt_noui
 from .bridge_chatgpt import predict as chatgpt_ui
@@ -79,6 +79,7 @@ cohere_endpoint = "https://api.cohere.ai/v1/chat"
 ollama_endpoint = "http://localhost:11434/api/chat"
 yimodel_endpoint = "https://api.lingyiwanwu.com/v1/chat/completions"
 deepseekapi_endpoint = "https://api.deepseek.com/v1/chat/completions"
+siliconflow_endpoint = "https://api.siliconflow.cn/v1/chat/completions"
 grok_model_endpoint = "https://api.x.ai/v1/chat/completions"
 
 if not AZURE_ENDPOINT.endswith('/'): AZURE_ENDPOINT += '/'
@@ -1127,6 +1128,41 @@ if "deepseek-chat" in AVAIL_LLM_MODELS or "deepseek-coder" in AVAIL_LLM_MODELS o
         })
     except:
         logger.error(trimmed_format_exc())
+
+# -=-=-=-=-=-=- siliconflow 支持 -=-=-=-=-=-=-
+for model in [m for m in AVAIL_LLM_MODELS if m.startswith("siliconflow-")]:
+    # 为了更灵活地接入one-api多模型管理界面，设计了此接口，例子：AVAIL_LLM_MODELS = ["one-api-mixtral-8x7b(max_token=6666)"]
+    # 其中
+    #   "one-api-"          是前缀（必要）
+    #   "mixtral-8x7b"      是模型名（必要）
+    #   "(max_token=6666)"  是配置（非必要）
+    
+    try:
+        # 加载模型名称
+        origin_model_name, max_token_tmp = read_siliconflow_model_name(model)
+    
+        # 加载模型
+        try:
+            siliconflow_noui, siliconflow_ui = get_predict_function(
+                api_key_conf_name="SILICONFLOW_API_KEY", max_output_token=4096, disable_proxy=False
+            )
+            model_info.update({
+                origin_model_name:{
+                    "fn_with_ui": siliconflow_ui,
+                    "fn_without_ui": siliconflow_noui,
+                    "endpoint": siliconflow_endpoint,
+                    "can_multi_thread": True,
+                    "max_token": max_token_tmp,
+                    "tokenizer": tokenizer_gpt35,
+                    "token_cnt": get_token_num_gpt35,
+                },
+            })
+        except:
+            logger.error(trimmed_format_exc())
+    except:
+        logger.error(f"siliconflow模型 {model} 的 max_token 配置不是整数，请检查配置文件。")
+        continue
+
 # -=-=-=-=-=-=- one-api 对齐支持 -=-=-=-=-=-=-
 for model in [m for m in AVAIL_LLM_MODELS if m.startswith("one-api-")]:
     # 为了更灵活地接入one-api多模型管理界面，设计了此接口，例子：AVAIL_LLM_MODELS = ["one-api-mixtral-8x7b(max_token=6666)"]

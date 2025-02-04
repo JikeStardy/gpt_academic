@@ -21,7 +21,15 @@ def map_friendly_names_to_model(m):
     return m
 
 def read_one_api_model_name(model: str):
-    """return real model name and max_token.
+    return read_model_name_and_max_token(model, prefix="")
+
+def read_siliconflow_model_name(siliconflow_model: str):
+    """return real model name and max_token on siliconflow.
+    """
+    return read_model_name_and_max_token(siliconflow_model, prefix="siliconflow-")
+
+def read_model_name_and_max_token(model: str, prefix=""):
+    """return real model name and max_token from model_cfg_name like `xxx-gpt-3.5(max_token=...)`.
     """
     max_token_pattern = r"\(max_token=(\d+)\)"
     match = re.search(max_token_pattern, model)
@@ -31,4 +39,7 @@ def read_one_api_model_name(model: str):
         model = re.sub(max_token_pattern, "", model)  # 从原字符串中删除 "(max_token=...)"
     else:
         max_token_tmp = 4096
+    
+    if prefix:
+        model = model.replace(prefix, "", 1)
     return model, max_token_tmp

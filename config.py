@@ -16,6 +16,9 @@ DASHSCOPE_API_KEY = "" # 阿里灵积云API_KEY
 # [step 1-3]>> ( 接入 deepseek-reasoner, 即 deepseek-r1 ) 深度求索(DeepSeek) API KEY，默认请求地址为"https://api.deepseek.com/v1/chat/completions"
 DEEPSEEK_API_KEY = ""
 
+# [step 1-4]>> ( 接入 Siliconflow 平台 ) 硅基流动 Siliconflow API KEY，默认请求地址为"https://api.siliconflow.cn/v1/chat/completions"
+SILICONFLOW_API_KEY = ""
+
 # [step 2]>> 改为True应用代理。如果使用本地或无地域限制的大模型时，此处不修改；如果直接在海外服务器部署，此处不修改
 USE_PROXY = False
 if USE_PROXY:
@@ -43,7 +46,12 @@ AVAIL_LLM_MODELS = ["qwen-max", "o1-mini", "o1-mini-2024-09-12", "o1", "o1-2024-
                     "gpt-3.5-turbo-1106", "gpt-3.5-turbo-16k", "gpt-3.5-turbo", "azure-gpt-3.5",
                     "gpt-4", "gpt-4-32k", "azure-gpt-4", "glm-4", "glm-4v", "glm-3-turbo",
                     "gemini-1.5-pro", "chatglm3", "chatglm4",
-                    "deepseek-chat", "deepseek-coder", "deepseek-reasoner"
+                    "deepseek-chat", "deepseek-coder", "deepseek-reasoner",
+                    # siliconflow
+                    "siliconflow-deepseek-ai/DeepSeek-V3(max_token=64000)",
+                    "siliconflow-deepseek-ai/DeepSeek-R1(max_token=64000)",
+                    "siliconflow-deepseek-ai/DeepSeek-R1-Distill-Llama-70B(max_token=32000)",
+                    "siliconflow-deepseek-ai/DeepSeek-R1-Distill-Qwen-32B(max_token=32000)",
                     ]
 
 EMBEDDING_MODEL = "text-embedding-3-small"

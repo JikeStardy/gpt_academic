@@ -12,7 +12,7 @@ import tiktoken, copy, re
 from loguru import logger
 from functools import lru_cache
 from concurrent.futures import ThreadPoolExecutor
-from toolbox import get_conf, trimmed_format_exc, apply_gpt_academic_string_mask, read_one_api_model_name, read_siliconflow_model_name
+from toolbox import get_conf, trimmed_format_exc, apply_gpt_academic_string_mask, read_one_api_model_name, read_model_name_and_max_token
 
 from .bridge_chatgpt import predict_no_ui_long_connection as chatgpt_noui
 from .bridge_chatgpt import predict as chatgpt_ui
@@ -114,6 +114,10 @@ get_token_num_gpt4 = lambda txt: len(tokenizer_gpt4.encode(txt, disallowed_speci
 # 开始初始化模型
 AVAIL_LLM_MODELS, LLM_MODEL = get_conf("AVAIL_LLM_MODELS", "LLM_MODEL")
 AVAIL_LLM_MODELS = AVAIL_LLM_MODELS + [LLM_MODEL]
+
+# -=-=-=-=-=-=- 记录三方接口的实际请求模型名称 ( 针对 oai_std_model ) -=-=-=-=-=-=-
+oai_std_model_name_mappings = dict(zip(AVAIL_LLM_MODELS, AVAIL_LLM_MODELS))
+
 # -=-=-=-=-=-=- 以下这部分是最早加入的最稳定的模型 -=-=-=-=-=-=-
 model_info = {
     # openai
@@ -1139,12 +1143,13 @@ for model in [m for m in AVAIL_LLM_MODELS if m.startswith("siliconflow-")]:
     
     try:
         # 加载模型名称
-        origin_model_name, max_token_tmp = read_siliconflow_model_name(model)
+        real_model_name_tmp, max_token_tmp = read_model_name_and_max_token(model, prefix="siliconflow-")
+        oai_std_model_name_mappings[model] = real_model_name_tmp
     
         # 加载模型
         try:
             siliconflow_noui, siliconflow_ui = get_predict_function(
-                api_key_conf_name="SILICONFLOW_API_KEY", max_output_token=4096, disable_proxy=False
+                api_key_conf_name="SILICONFLOW_API_KEY", max_output_token=max_token_tmp, disable_proxy=False
             )
             model_info.update({
                 model:{

@@ -132,7 +132,6 @@ def get_predict_function(
     disable_proxy：
         是否使用代理，True为不使用，False为使用。
     """
-
     APIKEY = get_conf(api_key_conf_name)
 
     def predict_no_ui_long_connection(
@@ -156,7 +155,7 @@ def get_predict_function(
         observe_window = None：
             用于负责跨越线程传递已经输出的部分，大部分时候仅仅为了fancy的视觉效果，留空即可。observe_window[0]：观测窗。observe_window[1]：看门狗
         """
-        from .bridge_all import model_info
+        from .bridge_all import model_info, oai_std_model_name_mappings
         watch_dog_patience = 5  # 看门狗的耐心，设置5秒不准咬人(咬的也不是人
         if len(APIKEY) == 0:
             raise RuntimeError(f"APIKEY为空,请检查配置文件的{APIKEY}")
@@ -164,7 +163,7 @@ def get_predict_function(
             inputs = "你好👋"
         headers, playload = generate_message(
             input=inputs,
-            model=llm_kwargs["llm_model"],
+            model=oai_std_model_name_mappings[llm_kwargs["llm_model"]],
             key=APIKEY,
             history=history,
             max_output_token=max_output_token,
@@ -271,7 +270,7 @@ def get_predict_function(
         chatbot 为WebUI中显示的对话列表，修改它，然后yeild出去，可以直接修改对话界面内容
         additional_fn代表点击的哪个按钮，按钮见functional.py
         """
-        from .bridge_all import model_info
+        from .bridge_all import model_info, oai_std_model_name_mappings
         if len(APIKEY) == 0:
             raise RuntimeError(f"APIKEY为空,请检查配置文件的{APIKEY}")
         if inputs == "":
@@ -282,7 +281,6 @@ def get_predict_function(
             inputs, history = handle_core_functionality(
                 additional_fn, inputs, history, chatbot
             )
-        logger.info(f"[raw_input] {inputs}")
         chatbot.append((inputs, ""))
         yield from update_ui(
             chatbot=chatbot, history=history, msg="等待响应"
@@ -301,7 +299,7 @@ def get_predict_function(
 
         headers, playload = generate_message(
             input=inputs,
-            model=llm_kwargs["llm_model"],
+            model=oai_std_model_name_mappings[llm_kwargs["llm_model"]],
             key=APIKEY,
             history=history,
             max_output_token=max_output_token,

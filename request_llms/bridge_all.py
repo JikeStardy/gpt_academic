@@ -1147,7 +1147,7 @@ for model in [m for m in AVAIL_LLM_MODELS if m.startswith("siliconflow-")]:
                 api_key_conf_name="SILICONFLOW_API_KEY", max_output_token=4096, disable_proxy=False
             )
             model_info.update({
-                origin_model_name:{
+                model:{
                     "fn_with_ui": siliconflow_ui,
                     "fn_without_ui": siliconflow_noui,
                     "endpoint": siliconflow_endpoint,

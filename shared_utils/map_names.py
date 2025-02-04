@@ -26,7 +26,7 @@ def read_one_api_model_name(model: str):
 def read_siliconflow_model_name(siliconflow_model: str):
     """return real model name and max_token on siliconflow.
     """
-    return read_model_name_and_max_token(siliconflow_model, prefix="siliconflow-")
+    return read_model_name_and_max_token(siliconflow_model, prefix="")
 
 def read_model_name_and_max_token(model: str, prefix=""):
     """return real model name and max_token from model_cfg_name like `xxx-gpt-3.5(max_token=...)`.

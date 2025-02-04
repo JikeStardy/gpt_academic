@@ -14,17 +14,19 @@ validate_path()  # validate path so you can run from base directory
 
 if "在线模型":
     if __name__ == "__main__":
-        from request_llms.bridge_taichu import predict_no_ui_long_connection
+        from request_llms.bridge_all import model_info
         # from request_llms.bridge_cohere import predict_no_ui_long_connection
         # from request_llms.bridge_spark import predict_no_ui_long_connection
         # from request_llms.bridge_zhipu import predict_no_ui_long_connection
         # from request_llms.bridge_chatglm3 import predict_no_ui_long_connection
         llm_kwargs = {
-            "llm_model": "taichu",
+            "llm_model": "deepseek-ai/DeepSeek-V3",
             "max_length": 4096,
             "top_p": 1,
             "temperature": 1,
         }
+
+        model_info[]
 
         result = predict_no_ui_long_connection(
             inputs="请问什么是质子？", llm_kwargs=llm_kwargs, history=["你好", "我好！"], sys_prompt="系统"

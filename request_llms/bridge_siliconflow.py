@@ -22,9 +22,9 @@ def register_siliconflow_model(avail_models: List[str], model_info: Dict):
         
         try:
             # 加载模型名称
-            real_model_name, model_settings = read_model_name_and_settings(model, prefix=SILICONFLOW_PREFIX)
+            real_model_name, model_settings = read_model_name_and_settings(model)
             show_models[model] = real_model_name
-            oai_std_model_name_mappings[real_model_name] = real_model_name
+            oai_std_model_name_mappings[real_model_name] = real_model_name.replace(SILICONFLOW_PREFIX, "")
         
             # 加载模型
             try:
@@ -32,7 +32,7 @@ def register_siliconflow_model(avail_models: List[str], model_info: Dict):
                     api_key_conf_name="SILICONFLOW_API_KEY", max_output_token=model_settings.get('max_output_token', 4096), disable_proxy=False
                 )
                 model_info.update({
-                    model:{
+                    real_model_name:{
                         "fn_with_ui": siliconflow_ui,
                         "fn_without_ui": siliconflow_noui,
                         "endpoint": siliconflow_endpoint,
@@ -44,6 +44,6 @@ def register_siliconflow_model(avail_models: List[str], model_info: Dict):
                 })
             except:
                 logger.error(trimmed_format_exc())
-        except:
-            logger.error(f"siliconflow模型 {model} 的配置有误，请检查配置文件。")
+        except Exception as e:
+            logger.error(f"siliconflow模型 {model} 的配置有误，请检查配置文件: {e}")
             continue

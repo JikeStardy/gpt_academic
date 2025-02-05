@@ -182,7 +182,7 @@ def main():
         # 左上角工具栏定义
         from themes.gui_toolbar import define_gui_toolbar
         checkboxes, checkboxes_2, max_length_sl, theme_dropdown, system_prompt, file_upload_2, md_dropdown, top_p, temperature = \
-            define_gui_toolbar(available_models, current_llm_model, INIT_SYS_PROMPT, THEME, AVAIL_THEMES, AVAIL_FONTS, ADD_WAIFU, help_menu_description, js_code_for_toggle_darkmode)
+            define_gui_toolbar(available_models, current_llm_model, INIT_SYS_PROMPT, THEME, AVAIL_THEMES, AVAIL_FONTS, ADD_WAIFU, "654321"+help_menu_description, js_code_for_toggle_darkmode)
 
         # 浮动菜单定义
         from themes.gui_floating_menu import define_gui_floating_menu

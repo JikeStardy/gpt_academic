@@ -101,7 +101,8 @@ class WelcomeMessage {
         // call update when page size change, call this.update when page size change
         window.addEventListener('resize', this.update.bind(this));
         // add a loop to reflesh cards
-        this.startRefleshCards();
+        // this.startRefleshCards();
+        this.reflesh_cards();
         this.startAutoUpdate();
     }
 

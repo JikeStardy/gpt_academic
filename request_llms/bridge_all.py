@@ -12,7 +12,7 @@ import tiktoken, copy, re
 from loguru import logger
 from functools import lru_cache
 from concurrent.futures import ThreadPoolExecutor
-from toolbox import get_conf, trimmed_format_exc, apply_gpt_academic_string_mask, read_one_api_model_name, read_model_name_and_max_token
+from toolbox import get_conf, trimmed_format_exc, apply_gpt_academic_string_mask, read_one_api_model_name
 
 from .bridge_chatgpt import predict_no_ui_long_connection as chatgpt_noui
 from .bridge_chatgpt import predict as chatgpt_ui
@@ -79,8 +79,6 @@ cohere_endpoint = "https://api.cohere.ai/v1/chat"
 ollama_endpoint = "http://localhost:11434/api/chat"
 yimodel_endpoint = "https://api.lingyiwanwu.com/v1/chat/completions"
 deepseekapi_endpoint = "https://api.deepseek.com/v1/chat/completions"
-siliconflow_endpoint = "https://api.siliconflow.cn/v1/chat/completions"
-ark_endpoint = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
 grok_model_endpoint = "https://api.x.ai/v1/chat/completions"
 
 if not AZURE_ENDPOINT.endswith('/'): AZURE_ENDPOINT += '/'
@@ -104,8 +102,6 @@ if ollama_endpoint in API_URL_REDIRECT: ollama_endpoint = API_URL_REDIRECT[ollam
 if yimodel_endpoint in API_URL_REDIRECT: yimodel_endpoint = API_URL_REDIRECT[yimodel_endpoint]
 if deepseekapi_endpoint in API_URL_REDIRECT: deepseekapi_endpoint = API_URL_REDIRECT[deepseekapi_endpoint]
 if grok_model_endpoint in API_URL_REDIRECT: grok_model_endpoint = API_URL_REDIRECT[grok_model_endpoint]
-if siliconflow_endpoint in API_URL_REDIRECT: siliconflow_endpoint = API_URL_REDIRECT[siliconflow_endpoint]
-if ark_endpoint in API_URL_REDIRECT: ark_endpoint = API_URL_REDIRECT[ark_endpoint]
 
 # 获取tokenizer
 tokenizer_gpt35 = LazyloadTiktoken("gpt-3.5-turbo")
@@ -117,7 +113,8 @@ get_token_num_gpt4 = lambda txt: len(tokenizer_gpt4.encode(txt, disallowed_speci
 # 开始初始化模型
 AVAIL_LLM_MODELS, LLM_MODEL = get_conf("AVAIL_LLM_MODELS", "LLM_MODEL")
 AVAIL_LLM_MODELS = AVAIL_LLM_MODELS + [LLM_MODEL]
-
+# 展示模型名称
+show_models = dict(zip(AVAIL_LLM_MODELS, AVAIL_LLM_MODELS))
 # -=-=-=-=-=-=- 记录三方接口的实际请求模型名称 ( 针对 oai_std_model ) -=-=-=-=-=-=-
 oai_std_model_name_mappings = dict(zip(AVAIL_LLM_MODELS, AVAIL_LLM_MODELS))
 
@@ -1137,74 +1134,12 @@ if "deepseek-chat" in AVAIL_LLM_MODELS or "deepseek-coder" in AVAIL_LLM_MODELS o
         logger.error(trimmed_format_exc())
 
 # -=-=-=-=-=-=- siliconflow 支持 -=-=-=-=-=-=-
-for model in [m for m in AVAIL_LLM_MODELS if m.startswith("siliconflow-")]:
-    # 为接入siliconflow平台，设计了此接口，例子：AVAIL_LLM_MODELS = ["siliconflow-mixtral-8x7b(max_token=6666)"]
-    # 其中
-    #   "siliconflow-"      是前缀（必要）
-    #   "mixtral-8x7b"      是模型名（必要）
-    #   "(max_token=6666)"  是配置（非必要）
-    
-    try:
-        # 加载模型名称
-        real_model_name_tmp, max_output_token_tmp = read_model_name_and_max_token(model, prefix="siliconflow-")
-        oai_std_model_name_mappings[model] = real_model_name_tmp
-    
-        # 加载模型
-        try:
-            siliconflow_noui, siliconflow_ui = get_predict_function(
-                api_key_conf_name="SILICONFLOW_API_KEY", max_output_token=4096, disable_proxy=False
-            )
-            model_info.update({
-                model:{
-                    "fn_with_ui": siliconflow_ui,
-                    "fn_without_ui": siliconflow_noui,
-                    "endpoint": siliconflow_endpoint,
-                    "can_multi_thread": True,
-                    "max_token": max_output_token_tmp,
-                    "tokenizer": tokenizer_gpt35,
-                    "token_cnt": get_token_num_gpt35,
-                },
-            })
-        except:
-            logger.error(trimmed_format_exc())
-    except:
-        logger.error(f"siliconflow模型 {model} 的 max_token 配置不是整数，请检查配置文件。")
-        continue
+from .bridge_siliconflow import register_siliconflow_model
+register_siliconflow_model(show_models, model_info)
 
 # -=-=-=-=-=-=- 火山引擎方舟平台 支持 -=-=-=-=-=-=-
-for model in [m for m in AVAIL_LLM_MODELS if m.startswith("ark-")]:
-    # 为接入火山方舟ark平台，设计了此接口，例子：AVAIL_LLM_MODELS = ["ark-Doubao-1.5-pro-32k(max_token=6666)"]
-    # 其中
-    #   "ark-"               是前缀（必要）
-    #   "Doubao-1.5-pro-32k" 是模型名（必要）
-    #   "(max_token=6666)"   是配置（非必要）
-    
-    try:
-        # 加载模型名称
-        real_model_name_tmp, max_token_tmp = read_model_name_and_max_token(model, prefix="ark-")
-        oai_std_model_name_mappings[model] = real_model_name_tmp
-    
-        # 加载模型
-        try:
-            ark_noui, ark_ui = get_predict_function(
-                api_key_conf_name="ARK_API_KEY", max_output_token=4096, disable_proxy=False
-            )
-            model_info.update({
-                model:{
-                    "fn_with_ui": ark_ui,
-                    "fn_without_ui": ark_noui,
-                    "endpoint": ark_endpoint,
-                    "can_multi_thread": True,
-                    "max_token": max_token_tmp,
-                    "tokenizer": tokenizer_gpt35,
-                    "token_cnt": get_token_num_gpt35,
-                },
-            })
-        except:
-            logger.error(trimmed_format_exc())
-    except:
-        logger.error(f"ark模型 {model} 的 max_token 配置不是整数，请检查配置文件。")
-        continue
+from .bridge_ark import register_ark_model
+register_ark_model(show_models, model_info)
 
 # -=-=-=-=-=-=- one-api 对齐支持 -=-=-=-=-=-=-
 for model in [m for m in AVAIL_LLM_MODELS if m.startswith("one-api-")]:

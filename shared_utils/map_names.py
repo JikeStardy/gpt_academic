@@ -21,14 +21,6 @@ def map_friendly_names_to_model(m):
     return m
 
 def read_one_api_model_name(model: str):
-    return read_model_name_and_max_token(model, prefix="")
-
-def read_siliconflow_model_name(siliconflow_model: str):
-    """return real model name and max_token on siliconflow.
-    """
-    return read_model_name_and_max_token(siliconflow_model, prefix="siliconflow-")
-
-def read_model_name_and_max_token(model: str, prefix=""):
     """return real model name and max_token from model_cfg_name like `xxx-gpt-3.5(max_token=...)`.
     """
     max_token_pattern = r"\(max_token=(\d+)\)"
@@ -39,7 +31,29 @@ def read_model_name_and_max_token(model: str, prefix=""):
         model = re.sub(max_token_pattern, "", model)  # 从原字符串中删除 "(max_token=...)"
     else:
         max_token_tmp = 4096
-    
-    if prefix:
-        model = model.replace(prefix, "", 1)
     return model, max_token_tmp
+
+def read_model_name_and_settings(model: str):
+    settings_pattern = r"\((.*?)\)"
+    match = re.search(settings_pattern, model)
+    settings = {}
+    if match:
+        settings_str = match.group(1)
+        settings_list = settings_str.split(',')
+        for setting in settings_list:
+            if '=' not in setting:
+                raise ValueError(f"Invalid setting format: {setting}")
+            key, value = setting.split('=', 1)
+            value = value.strip()
+            try:
+                # 尝试转换为整数
+                parsed_value = int(value)
+            except ValueError:
+                try:
+                    # 转换为浮点数
+                    parsed_value = float(value)
+                except ValueError:
+                    parsed_value = value
+            settings[key.strip()] = parsed_value
+        origin_model_name = re.sub(settings_pattern, "", model).strip()
+    return origin_model_name, settings

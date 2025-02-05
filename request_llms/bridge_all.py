@@ -1149,7 +1149,7 @@ for model in [m for m in AVAIL_LLM_MODELS if m.startswith("siliconflow-")]:
         # 加载模型
         try:
             siliconflow_noui, siliconflow_ui = get_predict_function(
-                api_key_conf_name="SILICONFLOW_API_KEY", max_output_token=max_token_tmp, disable_proxy=False
+                api_key_conf_name="SILICONFLOW_API_KEY", max_output_token=4096, disable_proxy=False
             )
             model_info.update({
                 model:{

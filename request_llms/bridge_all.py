@@ -80,6 +80,7 @@ ollama_endpoint = "http://localhost:11434/api/chat"
 yimodel_endpoint = "https://api.lingyiwanwu.com/v1/chat/completions"
 deepseekapi_endpoint = "https://api.deepseek.com/v1/chat/completions"
 siliconflow_endpoint = "https://api.siliconflow.cn/v1/chat/completions"
+ark_endpoint = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
 grok_model_endpoint = "https://api.x.ai/v1/chat/completions"
 
 if not AZURE_ENDPOINT.endswith('/'): AZURE_ENDPOINT += '/'
@@ -103,6 +104,8 @@ if ollama_endpoint in API_URL_REDIRECT: ollama_endpoint = API_URL_REDIRECT[ollam
 if yimodel_endpoint in API_URL_REDIRECT: yimodel_endpoint = API_URL_REDIRECT[yimodel_endpoint]
 if deepseekapi_endpoint in API_URL_REDIRECT: deepseekapi_endpoint = API_URL_REDIRECT[deepseekapi_endpoint]
 if grok_model_endpoint in API_URL_REDIRECT: grok_model_endpoint = API_URL_REDIRECT[grok_model_endpoint]
+if siliconflow_endpoint in API_URL_REDIRECT: siliconflow_endpoint = API_URL_REDIRECT[siliconflow_endpoint]
+if ark_endpoint in API_URL_REDIRECT: ark_endpoint = API_URL_REDIRECT[ark_endpoint]
 
 # 获取tokenizer
 tokenizer_gpt35 = LazyloadTiktoken("gpt-3.5-turbo")
@@ -1135,15 +1138,15 @@ if "deepseek-chat" in AVAIL_LLM_MODELS or "deepseek-coder" in AVAIL_LLM_MODELS o
 
 # -=-=-=-=-=-=- siliconflow 支持 -=-=-=-=-=-=-
 for model in [m for m in AVAIL_LLM_MODELS if m.startswith("siliconflow-")]:
-    # 为了更灵活地接入one-api多模型管理界面，设计了此接口，例子：AVAIL_LLM_MODELS = ["one-api-mixtral-8x7b(max_token=6666)"]
+    # 为接入siliconflow平台，设计了此接口，例子：AVAIL_LLM_MODELS = ["siliconflow-mixtral-8x7b(max_token=6666)"]
     # 其中
-    #   "one-api-"          是前缀（必要）
+    #   "siliconflow-"      是前缀（必要）
     #   "mixtral-8x7b"      是模型名（必要）
     #   "(max_token=6666)"  是配置（非必要）
     
     try:
         # 加载模型名称
-        real_model_name_tmp, max_token_tmp = read_model_name_and_max_token(model, prefix="siliconflow-")
+        real_model_name_tmp, max_output_token_tmp = read_model_name_and_max_token(model, prefix="siliconflow-")
         oai_std_model_name_mappings[model] = real_model_name_tmp
     
         # 加载模型
@@ -1157,7 +1160,7 @@ for model in [m for m in AVAIL_LLM_MODELS if m.startswith("siliconflow-")]:
                     "fn_without_ui": siliconflow_noui,
                     "endpoint": siliconflow_endpoint,
                     "can_multi_thread": True,
-                    "max_token": max_token_tmp,
+                    "max_token": max_output_token_tmp,
                     "tokenizer": tokenizer_gpt35,
                     "token_cnt": get_token_num_gpt35,
                 },
@@ -1166,6 +1169,41 @@ for model in [m for m in AVAIL_LLM_MODELS if m.startswith("siliconflow-")]:
             logger.error(trimmed_format_exc())
     except:
         logger.error(f"siliconflow模型 {model} 的 max_token 配置不是整数，请检查配置文件。")
+        continue
+
+# -=-=-=-=-=-=- 火山引擎方舟平台 支持 -=-=-=-=-=-=-
+for model in [m for m in AVAIL_LLM_MODELS if m.startswith("ark-")]:
+    # 为接入火山方舟ark平台，设计了此接口，例子：AVAIL_LLM_MODELS = ["ark-Doubao-1.5-pro-32k(max_token=6666)"]
+    # 其中
+    #   "ark-"               是前缀（必要）
+    #   "Doubao-1.5-pro-32k" 是模型名（必要）
+    #   "(max_token=6666)"   是配置（非必要）
+    
+    try:
+        # 加载模型名称
+        real_model_name_tmp, max_token_tmp = read_model_name_and_max_token(model, prefix="ark-")
+        oai_std_model_name_mappings[model] = real_model_name_tmp
+    
+        # 加载模型
+        try:
+            ark_noui, ark_ui = get_predict_function(
+                api_key_conf_name="ARK_API_KEY", max_output_token=4096, disable_proxy=False
+            )
+            model_info.update({
+                model:{
+                    "fn_with_ui": ark_ui,
+                    "fn_without_ui": ark_noui,
+                    "endpoint": ark_endpoint,
+                    "can_multi_thread": True,
+                    "max_token": max_token_tmp,
+                    "tokenizer": tokenizer_gpt35,
+                    "token_cnt": get_token_num_gpt35,
+                },
+            })
+        except:
+            logger.error(trimmed_format_exc())
+    except:
+        logger.error(f"ark模型 {model} 的 max_token 配置不是整数，请检查配置文件。")
         continue
 
 # -=-=-=-=-=-=- one-api 对齐支持 -=-=-=-=-=-=-

@@ -19,6 +19,9 @@ DEEPSEEK_API_KEY = ""
 # [step 1-4]>> ( 接入 Siliconflow 平台 ) 硅基流动 Siliconflow API KEY，默认请求地址为"https://api.siliconflow.cn/v1/chat/completions"
 SILICONFLOW_API_KEY = ""
 
+# [step 1-5]>> ( 接入 Ark 平台 ) 火山方舟 Ark API KEY，默认请求地址为"https://ark.cn-beijing.volces.com/api/v3/chat/completions"
+ARK_API_KEY = ""
+
 # [step 2]>> 改为True应用代理。如果使用本地或无地域限制的大模型时，此处不修改；如果直接在海外服务器部署，此处不修改
 USE_PROXY = False
 if USE_PROXY:

@@ -14,7 +14,10 @@ ark_bot_endpoint = "https://ark.cn-beijing.volces.com/api/v3/bots/chat/completio
 if ark_bot_endpoint in API_URL_REDIRECT: 
     ark_bot_endpoint = API_URL_REDIRECT[ark_bot_endpoint]
 
+# --- constants
 ARK_PREFIX = "ark-"
+BOT_ID_SETTING = "bot_id"
+MODEL_ID_SETTING = "model_id"
 
 def register_ark_model(avail_models: List[str], model_info: Dict):
     for model in [m for m in avail_models if m.startswith(ARK_PREFIX)]:
@@ -28,8 +31,15 @@ def register_ark_model(avail_models: List[str], model_info: Dict):
             # 加载模型名称
             real_model_name, model_settings = read_model_name_and_settings(model)
             show_models[model] = real_model_name
-            oai_std_model_name_mappings[real_model_name] = model_settings.get('model_id', model_settings['bot_id'])
-        
+            if BOT_ID_SETTING in model_settings:
+                oai_std_model_name_mappings[real_model_name] = model_settings[BOT_ID_SETTING]
+                endpoint = ark_bot_endpoint
+            elif MODEL_ID_SETTING in model_settings:
+                oai_std_model_name_mappings[real_model_name] = model_settings[MODEL_ID_SETTING]
+                endpoint = ark_endpoint
+            else:
+                raise ValueError(f"Invalid ark settings: {model_settings}")
+  
             # 加载模型
             try:
                 ark_noui, ark_ui = get_predict_function(
@@ -39,7 +49,7 @@ def register_ark_model(avail_models: List[str], model_info: Dict):
                     real_model_name:{
                         "fn_with_ui": ark_ui,
                         "fn_without_ui": ark_noui,
-                        "endpoint": ark_endpoint,
+                        "endpoint": endpoint,
                         "can_multi_thread": True,
                         "max_token": model_settings.get('max_token', 4096),
                         "tokenizer": tokenizer_gpt35,

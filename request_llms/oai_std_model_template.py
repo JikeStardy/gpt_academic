@@ -43,7 +43,9 @@ def decode_chunk(chunk):
     reasoning_content = ""
     finish_reason = "False"
     try:
-        chunk = json.loads(chunk[6:])
+        if chunk.startswith("data:"):
+            chunk = chunk[len("data:"):]
+        chunk = json.loads(chunk.strip())
     except:
         respose = ""
         finish_reason = chunk
@@ -52,10 +54,10 @@ def decode_chunk(chunk):
         respose = "API_ERROR"
         try:
             chunk = json.loads(chunk)
-            finish_reason = chunk["error"]["code"]
+            finish_reason = chunk["error"]
         except:
             finish_reason = "API_ERROR"
-        return respose, finish_reason
+        return respose, None, finish_reason
 
     try:
         if chunk["choices"][0]["delta"]["content"] is not None:

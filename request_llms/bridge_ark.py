@@ -10,6 +10,10 @@ ark_endpoint = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
 if ark_endpoint in API_URL_REDIRECT: 
     ark_endpoint = API_URL_REDIRECT[ark_endpoint]
 
+ark_bot_endpoint = "https://ark.cn-beijing.volces.com/api/v3/bots/chat/completions"
+if ark_bot_endpoint in API_URL_REDIRECT: 
+    ark_bot_endpoint = API_URL_REDIRECT[ark_bot_endpoint]
+
 ARK_PREFIX = "ark-"
 
 def register_ark_model(avail_models: List[str], model_info: Dict):
@@ -24,7 +28,7 @@ def register_ark_model(avail_models: List[str], model_info: Dict):
             # 加载模型名称
             real_model_name, model_settings = read_model_name_and_settings(model)
             show_models[model] = real_model_name
-            oai_std_model_name_mappings[real_model_name] = model_settings['model_id']
+            oai_std_model_name_mappings[real_model_name] = model_settings.get('model_id', model_settings['bot_id'])
         
             # 加载模型
             try:
